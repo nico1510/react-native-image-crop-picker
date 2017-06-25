@@ -51,6 +51,7 @@ RCT_EXPORT_MODULE();
                                 @"cropping": @NO,
                                 @"cropperCircleOverlay": @NO,
                                 @"includeBase64": @NO,
+                                @"includeMd5Hash": @NO,
                                 @"includeExif": @NO,
                                 @"compressVideo": @YES,
                                 @"maxFiles": @5,
@@ -385,6 +386,7 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
                                                   withMime:@"video/mp4"
                                                   withSize:fileSizeValue
                                                   withData:[NSNull null]
+                                                  withMd5: [NSNull null]
                                                   withExif:[NSNull null]]);
              } else {
                  completion(nil);
@@ -393,7 +395,7 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
      }];
 }
 
-- (NSDictionary*) createAttachmentResponse:(NSString*)filePath withWidth:(NSNumber*)width withHeight:(NSNumber*)height withMime:(NSString*)mime withSize:(NSNumber*)size withData:(NSString*)data withExif: (NSDictionary*) exif {
+- (NSDictionary*) createAttachmentResponse:(NSString*)filePath withWidth:(NSNumber*)width withHeight:(NSNumber*)height withMime:(NSString*)mime withSize:(NSNumber*)size withData:(NSString*)data withMd5:(NSString*)md5 withExif: (NSDictionary*) exif {
     return @{
              @"path": filePath,
              @"width": width,
@@ -401,6 +403,7 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
              @"mime": mime,
              @"size": size,
              @"data": data,
+             @"md5": md5,
              @"exif": exif,
              };
 }
@@ -480,12 +483,13 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
                              }
 
                              [selections addObject:[self createAttachmentResponse:filePath
-                                                                        withWidth:imageResult.width
+                                                                       withWidth:imageResult.width
                                                                        withHeight:imageResult.height
-                                                                         withMime:imageResult.mime
-                                                                         withSize:[NSNumber numberWithUnsignedInteger:imageResult.data.length]
-                                                                         withData:[[self.options objectForKey:@"includeBase64"] boolValue] ? [imageResult.data base64EncodedStringWithOptions:0] : [NSNull null]
-                                                                         withExif:exif
+                                                                       withMime:imageResult.mime
+                                                                       withSize:[NSNumber numberWithUnsignedInteger:imageResult.data.length]
+                                                                       withData:[[self.options objectForKey:@"includeBase64"] boolValue] ? [imageResult.data base64EncodedStringWithOptions:0] : [NSNull null]
+                                                                       withMd5:[[self.options objectForKey:@"includeMd5Hash"] boolValue] ? [self computeMd5Hash:imageResult.data] : [NSNull null]
+                                                                       withExif:exif
                                                     ]];
                              processed++;
                              [lock unlock];
@@ -585,6 +589,7 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
                                                withMime:imageResult.mime
                                                withSize:[NSNumber numberWithUnsignedInteger:imageResult.data.length]
                                                withData:[[self.options objectForKey:@"includeBase64"] boolValue] ? [imageResult.data base64EncodedStringWithOptions:0] : [NSNull null]
+                                               withMd5:[[self.options objectForKey:@"includeMd5Hash"] boolValue] ? [self computeMd5Hash:imageResult.data] : [NSNull null]
                                                withExif:[[self.options objectForKey:@"includeExif"] boolValue] ? exif : [NSNull null]
                           ]);
         }]];
@@ -684,13 +689,30 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
 
     [self dismissCropper:controller completion:[self waitAnimationEnd:^{
         self.resolve([self createAttachmentResponse:filePath
-                                          withWidth:imageResult.width
-                                         withHeight:imageResult.height
-                                           withMime:imageResult.mime
-                                           withSize:[NSNumber numberWithUnsignedInteger:imageResult.data.length]
-                                           withData:[[self.options objectForKey:@"includeBase64"] boolValue] ? [imageResult.data base64EncodedStringWithOptions:0] : [NSNull null]
-                                           withExif:[NSNull null]]);
+                                        withWidth:imageResult.width
+                                        withHeight:imageResult.height
+                                        withMime:imageResult.mime
+                                        withSize:[NSNumber numberWithUnsignedInteger:imageResult.data.length]
+                                        withData:[[self.options objectForKey:@"includeBase64"] boolValue] ? [imageResult.data base64EncodedStringWithOptions:0] : [NSNull null]
+                                        withMd5:[[self.options objectForKey:@"includeMd5Hash"] boolValue] ? [self computeMd5Hash:imageResult.data] : [NSNull null]
+                                        withExif:[NSNull null]]);
     }]];
+}
+
+- (NSString*)computeMd5Hash:(NSData*)data
+{
+    // Create byte array of unsigned chars
+    unsigned char md5Buffer[CC_MD5_DIGEST_LENGTH];
+
+    // Create 16 byte MD5 hash value, store in buffer
+    CC_MD5(data.bytes, data.length, md5Buffer);
+
+    // Convert unsigned char buffer to NSString of hex values
+    NSMutableString *output = [NSMutableString stringWithCapacity:CC_MD5_DIGEST_LENGTH * 2];
+    for(int i = 0; i < CC_MD5_DIGEST_LENGTH; i++)
+        [output appendFormat:@"%02x",md5Buffer[i]];
+    
+    return output;
 }
 
 // at the moment it is not possible to upload image by reading PHAsset
