@@ -6,6 +6,7 @@ declare module "react-native-image-crop-picker" {
         multiple?: boolean;
         path?: string;
         includeBase64?: boolean;
+        includeMd5Hash: boolean;
         includeExif?: boolean;
         cropperTintColor?: string;
         cropperCircleOverlay?: boolean;
@@ -29,6 +30,7 @@ declare module "react-native-image-crop-picker" {
         path: string;
         size: number;
         data: null | string;
+        md5: null | string;
         width: number;
         height: number;
         mime: string;
