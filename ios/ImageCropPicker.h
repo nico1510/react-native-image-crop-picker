@@ -29,6 +29,7 @@
 #import "UIImage-Resize/UIImage+Resize.h"
 #import "Compression.h"
 #import <math.h>
+#import <CommonCrypto/CommonDigest.h>
 
 @interface ImageCropPicker : NSObject<
   RCTBridgeModule,
