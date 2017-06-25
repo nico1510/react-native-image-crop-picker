@@ -544,6 +544,10 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             image.putString("data", getBase64StringFromFile(path));
         }
 
+        if(includeMd5Hash) {
+            image.putString("md5", calculateMD5(path));
+        }
+
         // if compression options are provided image will be compressed. If none options is provided,
         // then original image will be returned
         File compressedImage = compression.compressImage(activity, options, path);
@@ -555,10 +559,6 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         image.putInt("height", options.outHeight);
         image.putString("mime", options.outMimeType);
         image.putInt("size", (int) new File(compressedImagePath).length());
-
-        if(includeMd5Hash) {
-            image.putString("md5", calculateMD5(compressedImagePath));
-        }
 
         return image;
     }
