@@ -103,7 +103,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     }
 
     private String getTmpDir(Activity activity) {
-        String tmpDir = activity.getCacheDir() + "/react-native-image-crop-picker";
+        String tmpDir = activity.getApplicationContext().getExternalFilesDir(null).getAbsolutePath() + "/" + "images";
         Boolean created = new File(tmpDir).mkdir();
 
         return tmpDir;
@@ -543,15 +543,16 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         if (includeBase64) {
             image.putString("data", getBase64StringFromFile(path));
         }
-
+        String md5 = calculateMD5(path);
         if(includeMd5Hash) {
-            image.putString("md5", calculateMD5(path));
+            image.putString("md5", md5);
         }
 
         // if compression options are provided image will be compressed. If none options is provided,
         // then original image will be returned
-        File compressedImage = compression.compressImage(activity, options, path);
-        String compressedImagePath = compressedImage.getPath();
+        String destinationPath = this.getTmpDir(activity);
+        File compressedImage = compression.compressImage(activity, options, path, destinationPath);
+        String compressedImagePath = compressedImage.getAbsolutePath();
         BitmapFactory.Options options = validateImage(compressedImagePath);
 
         image.putString("path", "file://" + compressedImagePath);
@@ -713,8 +714,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     private File createImageFile() throws IOException {
 
         String imageFileName = "image-" + UUID.randomUUID().toString();
-        File path = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
+        File path = super.getReactApplicationContext().getExternalFilesDir(null);
 
         if (!path.exists() && !path.isDirectory()) {
             path.mkdirs();
