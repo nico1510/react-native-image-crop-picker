@@ -40,6 +40,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -68,6 +71,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     private String mediaType = "any";
     private boolean multiple = false;
     private boolean includeBase64 = false;
+    private boolean includeMd5Hash = false;
     private boolean includeExif = false;
     private boolean cropping = false;
     private boolean cropperCircleOverlay = false;
@@ -99,7 +103,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     }
 
     private String getTmpDir(Activity activity) {
-        String tmpDir = activity.getCacheDir() + "/react-native-image-crop-picker";
+        String tmpDir = activity.getApplicationContext().getExternalFilesDir(null).getAbsolutePath() + "/" + "images";
         Boolean created = new File(tmpDir).mkdir();
 
         return tmpDir;
@@ -114,6 +118,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         mediaType = options.hasKey("mediaType") ? options.getString("mediaType") : mediaType;
         multiple = options.hasKey("multiple") && options.getBoolean("multiple");
         includeBase64 = options.hasKey("includeBase64") && options.getBoolean("includeBase64");
+        includeMd5Hash = options.hasKey("includeMd5Hash") && options.getBoolean("includeMd5Hash");
         includeExif = options.hasKey("includeExif") && options.getBoolean("includeExif");
         width = options.hasKey("width") ? options.getInt("width") : width;
         height = options.hasKey("height") ? options.getInt("height") : height;
@@ -535,10 +540,19 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             }
         }
 
+        if (includeBase64) {
+            image.putString("data", getBase64StringFromFile(path));
+        }
+        String md5 = calculateMD5(path);
+        if(includeMd5Hash) {
+            image.putString("md5", md5);
+        }
+
         // if compression options are provided image will be compressed. If none options is provided,
         // then original image will be returned
-        File compressedImage = compression.compressImage(activity, options, path);
-        String compressedImagePath = compressedImage.getPath();
+        String destinationPath = this.getTmpDir(activity);
+        File compressedImage = compression.compressImage(activity, options, path, destinationPath);
+        String compressedImagePath = compressedImage.getAbsolutePath();
         BitmapFactory.Options options = validateImage(compressedImagePath);
 
         image.putString("path", "file://" + compressedImagePath);
@@ -546,10 +560,6 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         image.putInt("height", options.outHeight);
         image.putString("mime", options.outMimeType);
         image.putInt("size", (int) new File(compressedImagePath).length());
-
-        if (includeBase64) {
-            image.putString("data", getBase64StringFromFile(compressedImagePath));
-        }
 
         return image;
     }
@@ -704,8 +714,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     private File createImageFile() throws IOException {
 
         String imageFileName = "image-" + UUID.randomUUID().toString();
-        File path = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
+        File path = super.getReactApplicationContext().getExternalFilesDir(null);
 
         if (!path.exists() && !path.isDirectory()) {
             path.mkdirs();
@@ -718,5 +727,45 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
 
         return image;
 
+    }
+
+    private static String calculateMD5(String filePath) {
+        MessageDigest digest;
+        try {
+            digest = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            Log.e("image-crop-picker", "Exception while getting digest", e);
+            return null;
+        }
+
+        InputStream is;
+        try {
+            is = new FileInputStream(filePath);
+        } catch (FileNotFoundException e) {
+            Log.e("image-crop-picker", "Exception while getting FileInputStream", e);
+            return null;
+        }
+
+        byte[] buffer = new byte[8192];
+        int read;
+        try {
+            while ((read = is.read(buffer)) > 0) {
+                digest.update(buffer, 0, read);
+            }
+            byte[] md5sum = digest.digest();
+            BigInteger bigInt = new BigInteger(1, md5sum);
+            String output = bigInt.toString(16);
+            // Fill to 32 chars
+            output = String.format("%32s", output).replace(' ', '0');
+            return output;
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to process file for MD5", e);
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                Log.e("image-crop-picker", "Exception on closing MD5 input stream", e);
+            }
+        }
     }
 }
