@@ -11,7 +11,6 @@ import android.graphics.Color;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.FileProvider;
@@ -49,6 +48,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+
+import io.reactivex.functions.Consumer;
 
 class PickerModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
@@ -416,13 +417,13 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         return type;
     }
 
-    private WritableMap getSelection(Activity activity, Uri uri, boolean isCamera) throws Exception {
+    private void getSelection(Activity activity, Uri uri, boolean isCamera) throws Exception {
         String path = resolveRealPath(activity, uri, isCamera);
         if (path == null || path.isEmpty()) {
             throw new Exception("Cannot resolve asset path.");
         }
 
-        return getImage(activity, path);
+        getImageAsync(activity, path);
     }
 
     private void getAsyncSelection(final Activity activity, Uri uri, boolean isCamera) throws Exception {
@@ -438,7 +439,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             return;
         }
 
-        resultCollector.notifySuccess(getImage(activity, path));
+        getImageAsync(activity, path);
     }
 
     private Bitmap validateVideo(String path) throws Exception {
@@ -523,8 +524,8 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         return options;
     }
 
-    private WritableMap getImage(final Activity activity, String path) throws Exception {
-        WritableMap image = new WritableNativeMap();
+    private void getImageAsync(final Activity activity, String path) throws Exception {
+        final WritableMap image = new WritableNativeMap();
 
         if (path.startsWith("http://") || path.startsWith("https://")) {
             throw new Exception("Cannot select remote files");
@@ -551,17 +552,31 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         // if compression options are provided image will be compressed. If none options is provided,
         // then original image will be returned
         String destinationPath = this.getTmpDir(activity);
-        File compressedImage = compression.compressImage(activity, options, path, destinationPath);
-        String compressedImagePath = compressedImage.getAbsolutePath();
-        BitmapFactory.Options options = validateImage(compressedImagePath);
+        compression.compressImageAsync(activity, options, path, destinationPath, new Consumer<File>() {
+            @Override
+            public void accept(File file) {
+                String compressedImagePath = file.getAbsolutePath();
+                BitmapFactory.Options options = null;
+                try {
+                    options = validateImage(compressedImagePath);
+                    image.putInt("width", options.outWidth);
+                    image.putInt("height", options.outHeight);
+                    image.putString("mime", options.outMimeType);
+                    image.putString("path", "file://" + compressedImagePath);
+                    image.putInt("size", (int) new File(compressedImagePath).length());
 
-        image.putString("path", "file://" + compressedImagePath);
-        image.putInt("width", options.outWidth);
-        image.putInt("height", options.outHeight);
-        image.putString("mime", options.outMimeType);
-        image.putInt("size", (int) new File(compressedImagePath).length());
+                    resultCollector.notifySuccess(image);
 
-        return image;
+                } catch (Exception e) {
+                    resultCollector.notifyProblem(E_CALLBACK_ERROR, e);
+                }
+            }
+        }, new Consumer<Throwable>() {
+            @Override
+            public void accept(Throwable throwable) {
+                resultCollector.notifyProblem(E_CALLBACK_ERROR, throwable);
+            }
+        });
     }
 
     private void configureCropperColors(UCrop.Options options) {
@@ -666,7 +681,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                 startCropping(activity, uri);
             } else {
                 try {
-                    resultCollector.notifySuccess(getSelection(activity, uri, true));
+                    getSelection(activity, uri, true);
                 } catch (Exception ex) {
                     resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, ex.getMessage());
                 }
@@ -679,7 +694,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             final Uri resultUri = UCrop.getOutput(data);
             if (resultUri != null) {
                 try {
-                    resultCollector.notifySuccess(getSelection(activity, resultUri, false));
+                    getSelection(activity, resultUri, false);
                 } catch (Exception ex) {
                     resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, ex.getMessage());
                 }
