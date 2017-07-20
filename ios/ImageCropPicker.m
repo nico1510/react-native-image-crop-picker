@@ -268,12 +268,12 @@ RCT_EXPORT_METHOD(openPicker:(NSDictionary *)options
 
             if ([self.options objectForKey:@"smartAlbums"] != nil) {
                 NSDictionary *smartAlbums = @{
-                                          @"UserLibrary" : @(PHAssetCollectionSubtypeSmartAlbumUserLibrary),
-                                          @"PhotoStream" : @(PHAssetCollectionSubtypeAlbumMyPhotoStream),
-                                          @"Panoramas" : @(PHAssetCollectionSubtypeSmartAlbumPanoramas),
-                                          @"Videos" : @(PHAssetCollectionSubtypeSmartAlbumVideos),
-                                          @"Bursts" : @(PHAssetCollectionSubtypeSmartAlbumBursts),
-                                          };
+                                              @"UserLibrary" : @(PHAssetCollectionSubtypeSmartAlbumUserLibrary),
+                                              @"PhotoStream" : @(PHAssetCollectionSubtypeAlbumMyPhotoStream),
+                                              @"Panoramas" : @(PHAssetCollectionSubtypeSmartAlbumPanoramas),
+                                              @"Videos" : @(PHAssetCollectionSubtypeSmartAlbumVideos),
+                                              @"Bursts" : @(PHAssetCollectionSubtypeSmartAlbumBursts),
+                                              };
                 NSMutableArray *albumsToShow = [NSMutableArray arrayWithCapacity:5];
                 for (NSString* album in [self.options objectForKey:@"smartAlbums"]) {
                     if ([smartAlbums objectForKey:album] != nil) {
@@ -410,7 +410,7 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
                                                   withMime:@"video/mp4"
                                                   withSize:fileSizeValue
                                                   withData:[NSNull null]
-                                                  withMd5: [NSNull null]
+                                                   withMd5: [NSNull null]
                                                   withExif:[NSNull null]]);
              } else {
                  completion(nil);
@@ -449,88 +449,91 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
             __block int processed = 0;
 
             for (PHAsset *phAsset in assets) {
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+                    if (phAsset.mediaType == PHAssetMediaTypeVideo) {
+                        [self getVideoAsset:phAsset completion:^(NSDictionary* video) {
+                            dispatch_async(dispatch_get_main_queue(), ^{
+                                [lock lock];
 
-                if (phAsset.mediaType == PHAssetMediaTypeVideo) {
-                    [self getVideoAsset:phAsset completion:^(NSDictionary* video) {
-                        dispatch_async(dispatch_get_main_queue(), ^{
-                            [lock lock];
+                                if (video == nil) {
+                                    [indicatorView stopAnimating];
+                                    [overlayView removeFromSuperview];
+                                    [imagePickerController dismissViewControllerAnimated:YES completion:[self waitAnimationEnd:^{
+                                        self.reject(ERROR_CANNOT_PROCESS_VIDEO_KEY, ERROR_CANNOT_PROCESS_VIDEO_MSG, nil);
+                                    }]];
+                                    return;
+                                }
 
-                            if (video == nil) {
-                                [indicatorView stopAnimating];
-                                [overlayView removeFromSuperview];
-                                [imagePickerController dismissViewControllerAnimated:YES completion:[self waitAnimationEnd:^{
-                                    self.reject(ERROR_CANNOT_PROCESS_VIDEO_KEY, ERROR_CANNOT_PROCESS_VIDEO_MSG, nil);
-                                }]];
-                                return;
-                            }
+                                [selections addObject:video];
+                                processed++;
+                                [lock unlock];
 
-                            [selections addObject:video];
-                            processed++;
-                            [lock unlock];
+                                if (processed == [assets count]) {
+                                    [indicatorView stopAnimating];
+                                    [overlayView removeFromSuperview];
+                                    [imagePickerController dismissViewControllerAnimated:YES completion:[self waitAnimationEnd:^{
+                                        self.resolve(selections);
+                                    }]];
+                                    return;
+                                }
+                            });
+                        }];
+                    } else {
+                        [manager
+                         requestImageDataForAsset:phAsset
+                         options:options
+                         resultHandler:^(NSData *imageData, NSString *dataUTI, UIImageOrientation orientation, NSDictionary *info) {
 
-                            if (processed == [assets count]) {
-                                [indicatorView stopAnimating];
-                                [overlayView removeFromSuperview];
-                                [imagePickerController dismissViewControllerAnimated:YES completion:[self waitAnimationEnd:^{
-                                    self.resolve(selections);
-                                }]];
-                                return;
-                            }
-                        });
-                    }];
-                } else {
-                    [manager
-                     requestImageDataForAsset:phAsset
-                     options:options
-                     resultHandler:^(NSData *imageData, NSString *dataUTI, UIImageOrientation orientation, NSDictionary *info) {
-
-                         dispatch_async(dispatch_get_main_queue(), ^{
-                             [lock lock];
                              UIImage *imgT = [UIImage imageWithData:imageData];
                              UIImage *imageT = [imgT fixOrientation];
 
                              NSString *md5 = [self computeMd5Hash:imageData];
                              ImageResult *imageResult = [self.compression compressImage:imageT withOptions:self.options];
                              NSString *filePath = [self persistFile:imageResult.data withMd5:md5];
-                             
-                             if (filePath == nil) {
-                                 [indicatorView stopAnimating];
-                                 [overlayView removeFromSuperview];
-                                 [imagePickerController dismissViewControllerAnimated:YES completion:[self waitAnimationEnd:^{
-                                     self.reject(ERROR_CANNOT_SAVE_IMAGE_KEY, ERROR_CANNOT_SAVE_IMAGE_MSG, nil);
-                                 }]];
-                                 return;
-                             }
 
                              NSDictionary* exif = [NSNull null];
                              if([[self.options objectForKey:@"includeExif"] boolValue]) {
                                  exif = [[CIImage imageWithData:imageData] properties];
                              }
 
+                             if (filePath == nil) {
+                                 dispatch_async(dispatch_get_main_queue(), ^{
+                                     [indicatorView stopAnimating];
+                                     [overlayView removeFromSuperview];
+                                     [imagePickerController dismissViewControllerAnimated:YES completion:[self waitAnimationEnd:^{
+                                         self.reject(ERROR_CANNOT_SAVE_IMAGE_KEY, ERROR_CANNOT_SAVE_IMAGE_MSG, nil);
+                                     }]];
+                                 });
+                                 return;
+                             }
+
+                             [lock lock];
+
                              [selections addObject:[self createAttachmentResponse:filePath
-                                                                       withWidth:imageResult.width
+                                                                        withWidth:imageResult.width
                                                                        withHeight:imageResult.height
-                                                                       withMime:imageResult.mime
-                                                                       withSize:[NSNumber numberWithUnsignedInteger:imageResult.data.length]
-                                                                       withData:[[self.options objectForKey:@"includeBase64"] boolValue] ? [imageResult.data base64EncodedStringWithOptions:0] : [NSNull null]
-                                                                       withMd5:[[self.options objectForKey:@"includeMd5Hash"] boolValue] ? md5 : [NSNull null]
-                                                                       withExif:exif
+                                                                         withMime:imageResult.mime
+                                                                         withSize:[NSNumber numberWithUnsignedInteger:imageResult.data.length]
+                                                                         withData:[[self.options objectForKey:@"includeBase64"] boolValue] ? [imageResult.data base64EncodedStringWithOptions:0] : [NSNull null]
+                                                                          withMd5:[[self.options objectForKey:@"includeMd5Hash"] boolValue] ? md5 : [NSNull null]
+                                                                         withExif:exif
                                                     ]];
                              processed++;
                              [lock unlock];
 
                              if (processed == [assets count]) {
-
-                                 [indicatorView stopAnimating];
-                                 [overlayView removeFromSuperview];
-                                 [imagePickerController dismissViewControllerAnimated:YES completion:[self waitAnimationEnd:^{
-                                     self.resolve(selections);
-                                 }]];
+                                 dispatch_async(dispatch_get_main_queue(), ^{
+                                     [indicatorView stopAnimating];
+                                     [overlayView removeFromSuperview];
+                                     [imagePickerController dismissViewControllerAnimated:YES completion:[self waitAnimationEnd:^{
+                                         self.resolve(selections);
+                                     }]];
+                                 });
                                  return;
                              }
-                         });
-                     }];
-                }
+                         }];
+                    }
+                });
             }
         }];
     } else {
@@ -615,7 +618,7 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
                                                withMime:imageResult.mime
                                                withSize:[NSNumber numberWithUnsignedInteger:imageResult.data.length]
                                                withData:[[self.options objectForKey:@"includeBase64"] boolValue] ? [imageResult.data base64EncodedStringWithOptions:0] : [NSNull null]
-                                               withMd5:[[self.options objectForKey:@"includeMd5Hash"] boolValue] ? md5 : [NSNull null]
+                                                withMd5:[[self.options objectForKey:@"includeMd5Hash"] boolValue] ? md5 : [NSNull null]
                                                withExif:[[self.options objectForKey:@"includeExif"] boolValue] ? exif : [NSNull null]
                           ]);
         }]];
@@ -724,13 +727,13 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
 
     [self dismissCropper:controller dismissAll: YES completion:[self waitAnimationEnd:^{
         self.resolve([self createAttachmentResponse:filePath
-                                        withWidth:imageResult.width
-                                        withHeight:imageResult.height
-                                        withMime:imageResult.mime
-                                        withSize:[NSNumber numberWithUnsignedInteger:imageResult.data.length]
-                                        withData:[[self.options objectForKey:@"includeBase64"] boolValue] ? [imageResult.data base64EncodedStringWithOptions:0] : [NSNull null]
-                                        withMd5:[[self.options objectForKey:@"includeMd5Hash"] boolValue] ? md5 : [NSNull null]
-                                        withExif:[NSNull null]]);
+                                          withWidth:imageResult.width
+                                         withHeight:imageResult.height
+                                           withMime:imageResult.mime
+                                           withSize:[NSNumber numberWithUnsignedInteger:imageResult.data.length]
+                                           withData:[[self.options objectForKey:@"includeBase64"] boolValue] ? [imageResult.data base64EncodedStringWithOptions:0] : [NSNull null]
+                                            withMd5:[[self.options objectForKey:@"includeMd5Hash"] boolValue] ? md5 : [NSNull null]
+                                           withExif:[NSNull null]]);
     }]];
 }
 
@@ -746,7 +749,7 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
     NSMutableString *output = [NSMutableString stringWithCapacity:CC_MD5_DIGEST_LENGTH * 2];
     for(int i = 0; i < CC_MD5_DIGEST_LENGTH; i++)
         [output appendFormat:@"%02x",md5Buffer[i]];
-    
+
     return output;
 }
 
@@ -756,15 +759,15 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
     // create temp file
     NSString *tmpDirFullPath = [self getDocumentsDirectory];
     NSString *filePath = [tmpDirFullPath stringByAppendingPathComponent:[md5 stringByAppendingString:@".jpg"]];
-
+    
     // save cropped file
     BOOL status = [data writeToFile:filePath atomically:YES];
     if (!status) {
         return nil;
     }
-
+    
     [self addSkipBackupAttributeToItemAtPath:filePath]; // skip iCloud backup
-
+    
     return filePath;
 }
 
