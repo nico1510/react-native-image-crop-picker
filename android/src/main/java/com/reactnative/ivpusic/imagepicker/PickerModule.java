@@ -681,6 +681,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                 startCropping(activity, uri);
             } else {
                 try {
+                    resultCollector.setWaitCount(1);
                     getSelection(activity, uri, true);
                 } catch (Exception ex) {
                     resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, ex.getMessage());
@@ -694,6 +695,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             final Uri resultUri = UCrop.getOutput(data);
             if (resultUri != null) {
                 try {
+                    resultCollector.setWaitCount(1);
                     getSelection(activity, resultUri, false);
                 } catch (Exception ex) {
                     resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, ex.getMessage());
