@@ -3,9 +3,11 @@ iOS/Android image picker with support for camera, configurable compression, mult
 
 ## Result
 
-<img width=200 title="iOS Single Pick" src="https://github.com/ivpusic/react-native-image-crop-picker/blob/master/images/ios_single_pick.png">
+<p align="left">
+  <img width=200 title="iOS Single Pick" src="https://github.com/ivpusic/react-native-image-crop-picker/blob/master/images/ios_single_pick.png">
 <img width=200 title="iOS Crop" src="https://github.com/ivpusic/react-native-image-crop-picker/blob/master/images/ios_crop.png">
 <img width=200 title="iOS Multiple Pick" src="https://github.com/ivpusic/react-native-image-crop-picker/blob/master/images/ios_multiple_pick.png">
+</p>
 
 ## Usage
 
@@ -14,7 +16,7 @@ Import library
 import ImagePicker from 'react-native-image-crop-picker';
 ```
 
-#### Select from gallery
+### Select from gallery
 
 Call single image picker with cropping
 ```javascript
@@ -36,7 +38,7 @@ ImagePicker.openPicker({
 });
 ```
 
-#### Select from camera
+### Select from camera
 ```javascript
 ImagePicker.openCamera({
   width: 300,
@@ -47,7 +49,7 @@ ImagePicker.openCamera({
 });
 ```
 
-#### Crop picture
+### Crop picture
 ```javascript
 ImagePicker.openCropper({
   path: 'my-file-path.jpg',
@@ -58,7 +60,7 @@ ImagePicker.openCropper({
 });
 ```
 
-#### Optional cleanup
+### Optional cleanup
 Module is creating tmp images which are going to be cleaned up automatically somewhere in the future. If you want to force cleanup, you can use `clean` to clean all tmp files, or `cleanSingle(path)` to clean single tmp file.
 
 ```javascript
@@ -69,72 +71,106 @@ ImagePicker.clean().then(() => {
 });
 ```
 
-#### Request Object
+### Request Object
 
-| Property        | Type           | Description  |
-| ------------- |:-------------:| :-----|
-| cropping | bool (default false)      | Enable or disable cropping |
-| width          | number | Width of result image when used with `cropping` option |
-| height      | number      | Height of result image when used with `cropping` option |
-| multiple | bool (default false) | Enable or disable multiple image selection |
-| includeBase64 | bool (default false) | Enable or disable returning base64 data with image |
+| Property                                |                   Type                   | Description                              |
+| --------------------------------------- | :--------------------------------------: | :--------------------------------------- |
+| cropping                                |           bool (default false)           | Enable or disable cropping               |
+| width                                   |                  number                  | Width of result image when used with `cropping` option |
+| height                                  |                  number                  | Height of result image when used with `cropping` option |
+| multiple                                |           bool (default false)           | Enable or disable multiple image selection |
+| includeBase64                           |           bool (default false)           | Enable or disable returning base64 data with image |
 | includeExif | bool (default false) | Enable or disable returning exif data with image. Does not work when cropping is set to `true`. |
-| cropperActiveWidgetColor (android only) | string (default `"#424242"`) | When cropping image, determines ActiveWidget color. |
-| cropperStatusBarColor (android only) | string (default `#424242`) | When cropping image, determines the color of StatusBar. |
-| cropperToolbarColor (android only) | string (default `#424242`) | When cropping image, determines the color of Toolbar. |
-| cropperCircleOverlay | bool (default false) | Enable or disable circular cropping mask. |
-| maxFiles (ios only) | number (default 5) | Max number of files to select when using `multiple` option |
-| waitAnimationEnd (ios only) | bool (default true) | Promise will resolve/reject once ViewController `completion` block is called |
-| smartAlbums (ios only) | array (default ['UserLibrary', 'PhotoStream', 'Panoramas', 'Videos', 'Bursts']) | List of smart albums to choose from |
-| useFrontCamera (ios only) | bool (default false) | Whether to default to the front/'selfie' camera when opened |
-| compressVideoPreset (ios only) | string (default MediumQuality) | Choose which preset will be used for video compression |
-| compressImageMaxWidth | number (default none) | Compress image with maximum width |
-| compressImageMaxHeight | number (default none) | Compress image with maximum height |
-| compressImageQuality | number (default 1) | Compress image with quality (from 0 to 1, where 1 is best quality) |
-| loadingLabelText (ios only) | string (default "Processing assets...") | Text displayed while photo is loading in picker |
-| mediaType | string (default any) | Accepted mediaType for image selection, can be one of: 'photo', 'video', or 'any' |
-| showsSelectedCount (ios only) | bool (default true) | Whether to show the number of selected assets |
-| showCropGuidelines (android only) | bool (default true) | Whether to show the 3x3 grid on top of the image during cropping |
-| hideBottomControls (android only) | bool (default false) | Whether to display bottom controls |
-| enableRotationGesture (android only) | bool (default false) | Whether to enable rotating the image by hand gesture |
-#### Response Object
+| cropperActiveWidgetColor (android only) |       string (default `"#424242"`)       | When cropping image, determines ActiveWidget color. |
+| cropperStatusBarColor (android only)    |        string (default `#424242`)        | When cropping image, determines the color of StatusBar. |
+| cropperToolbarColor (android only)      |        string (default `#424242`)        | When cropping image, determines the color of Toolbar. |
+| cropperCircleOverlay                    |           bool (default false)           | Enable or disable circular cropping mask. |
+| minFiles (ios only)                     |            number (default 1)            | Min number of files to select when using `multiple` option |
+| maxFiles (ios only)                     |            number (default 5)            | Max number of files to select when using `multiple` option |
+| waitAnimationEnd (ios only)             |           bool (default true)            | Promise will resolve/reject once ViewController `completion` block is called |
+| smartAlbums (ios only)                  | array (default ['UserLibrary', 'PhotoStream', 'Panoramas', 'Videos', 'Bursts']) | List of smart albums to choose from      |
+| useFrontCamera (ios only)               |           bool (default false)           | Whether to default to the front/'selfie' camera when opened |
+| compressVideoPreset (ios only)          |      string (default MediumQuality)      | Choose which preset will be used for video compression |
+| compressImageMaxWidth                   |          number (default none)           | Compress image with maximum width        |
+| compressImageMaxHeight                  |          number (default none)           | Compress image with maximum height       |
+| compressImageQuality                    |            number (default 1)            | Compress image with quality (from 0 to 1, where 1 is best quality) |
+| loadingLabelText (ios only)             | string (default "Processing assets...")  | Text displayed while photo is loading in picker |
+| mediaType                               |           string (default any)           | Accepted mediaType for image selection, can be one of: 'photo', 'video', or 'any' |
+| showsSelectedCount (ios only)           |           bool (default true)            | Whether to show the number of selected assets |
+| showCropGuidelines (android only)       |           bool (default true)            | Whether to show the 3x3 grid on top of the image during cropping |
+| hideBottomControls (android only)       |           bool (default false)           | Whether to display bottom controls       |
+| enableRotationGesture (android only)    |           bool (default false)           | Whether to enable rotating the image by hand gesture |
+### Response Object
 
-| Property        | Type           | Description  |
-| ------------- |:-------------:| :-----|
-| path          | string | Selected image location |
-| width      | number      | Selected image width |
-| height | number      | Selected image height |
-| mime | string | Selected image MIME type (image/jpeg, image/png) |
-| size | number | Selected image size in bytes |
-| exif | object | exif data of the selected image |
-| data | base64 | Optional base64 selected file representation |
+| Property                  |  Type  | Description                              |
+| ------------------------- | :----: | :--------------------------------------- |
+| path                      | string | Selected image location                  |
+| localIdentifier(ios only) | string | Selected images' localidentifier, used for PHAsset searching |
+| sourceURL(ios only)       | string | Selected images' source path, do not have write access |
+| filename(ios only)        | string | Selected images' filename                |
+| width                     | number | Selected image width                     |
+| height                    | number | Selected image height                    |
+| mime                      | string | Selected image MIME type (image/jpeg, image/png) |
+| size                      | number | Selected image size in bytes             |
+| exif                      | object | Selected image exif data                 |
+| data                      | base64 | Optional base64 selected file representation |
 
-## Install
+# Install
+
+## Install package
 
 ```
 npm i react-native-image-crop-picker --save
+```
+
+Link the package using react-native link:
+
+```
 react-native link react-native-image-crop-picker
 ```
 
-#### Post-install steps
+## Post-install steps
 
-##### iOS
+### iOS
+
+#### Step 1:
 
 In Xcode open Info.plist and add string key `NSPhotoLibraryUsageDescription` with value that describes why do you need access to user photos. More info here https://forums.developer.apple.com/thread/62229. Depending on what features you use, you also may need `NSCameraUsageDescription` and `NSMicrophoneUsageDescription` keys.
 
-###### cocoapods users
+#### Step 2:
 
-- Add `platform :ios, '8.0'` to Podfile (!important)
-- Add `pod 'RSKImageCropper'` and `pod 'QBImagePickerController'` to Podfile
+##### Cocoapods (Highly recommended)
 
-###### non-cocoapods users
+```
+cd ios
+pod init
+```
+
+After this you have to add pod dependencies to `Podfile`. Open `Podfile` with your editor, and add or adjust example configuration:
+
+```
+platform :ios, '8.0'
+
+target '<your_project_name>' do
+    pod 'RSKImageCropper'
+    pod 'QBImagePickerController'
+end
+```
+
+After this run:
+
+```
+pod install
+```
+
+##### Manual
 
 - Drag and drop the ios/ImageCropPickerSDK folder to your xcode project. (Make sure Copy items if needed IS ticked)
 - Click on project General tab
   - Under `Deployment Info` set `Deployment Target` to `8.0`
   - Under `Embedded Binaries` click `+` and add `RSKImageCropper.framework` and `QBImagePicker.framework`
 
-##### Android
+### Android
 
 - Make sure you are using Gradle `2.2.x` (project build.gradle)
 ```gradle
@@ -165,15 +201,15 @@ android {
 - [Optional] If you want to use camera picker in your project, add following to `AndroidManifest.xml`
   - `<uses-permission android:name="android.permission.CAMERA"/>`
 
-#### Production build
+## Production build
 
-##### iOS
+### iOS
 
-###### cocoapods users
+#### Cocoapods (Highly recommended)
 
 - You are already done
 
-###### non-cocoapods users
+#### Manual
 
 If you are using pre-built frameworks from `ios/ImageCropPickerSDK`, then before deploying app to production you should strip off simulator ARCHs from these, or you can add frameworks from `Libraries/imageCropPicker/Libraries/_framework_name_.xcodeproj/Products/_framework_name_.framework` to Embedded Binaries instead of pre-built ones.
 Related issue: https://github.com/ivpusic/react-native-image-crop-picker/issues/61.
@@ -182,7 +218,7 @@ Details for second approach:
 
 1. Remove the pre-built frameworks from `Embedded Binaries`
 2. Build for Device
-4. Add the newly built binaries for both frameworks to `Embedded Binaries` (located at `Libraries/imageCropPicker/Libraries/_framework_name_.xcodeproj/Products/_framework_name_.framework`)
+3. Add the newly built binaries for both frameworks to `Embedded Binaries` (located at `Libraries/imageCropPicker/Libraries/_framework_name_.xcodeproj/Products/_framework_name_.framework`)
 
 ## License
 *MIT*
