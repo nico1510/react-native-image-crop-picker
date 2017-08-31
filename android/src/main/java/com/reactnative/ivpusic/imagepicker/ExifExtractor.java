@@ -29,6 +29,10 @@ public class ExifExtractor {
             attributes.addAll(getLevel23Attributes());
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            attributes.addAll(getLevel24Attributes());
+        }
+
         ExifInterface exif = new ExifInterface(path);
 
         for (String attribute : attributes) {
@@ -71,6 +75,67 @@ public class ExifExtractor {
                 TAG_SUBSEC_TIME,
                 TAG_SUBSEC_TIME_DIG,
                 TAG_SUBSEC_TIME_ORIG
+        ));
+    }
+
+    private static List<String> getLevel24Attributes() {
+        return new ArrayList<String>(Arrays.asList(
+                TAG_GPS_IMG_DIRECTION,
+                TAG_GPS_IMG_DIRECTION_REF,
+                TAG_GPS_MAP_DATUM,
+                TAG_GPS_MEASURE_MODE,
+                TAG_GPS_SATELLITES,
+                TAG_GPS_SPEED,
+                TAG_GPS_SPEED_REF,
+                TAG_GPS_STATUS,
+                TAG_GPS_TRACK,
+                TAG_GPS_TRACK_REF,
+                TAG_GPS_VERSION_ID,
+                TAG_IMAGE_DESCRIPTION,
+                TAG_IMAGE_UNIQUE_ID,
+                TAG_INTEROPERABILITY_INDEX,
+                TAG_ISO_SPEED_RATINGS,
+                TAG_JPEG_INTERCHANGE_FORMAT,
+                TAG_JPEG_INTERCHANGE_FORMAT_LENGTH,
+                TAG_LIGHT_SOURCE,
+                TAG_MAKER_NOTE,
+                TAG_MAX_APERTURE_VALUE,
+                TAG_METERING_MODE,
+                TAG_OECF,
+                TAG_PHOTOMETRIC_INTERPRETATION,
+                TAG_PIXEL_X_DIMENSION,
+                TAG_PIXEL_Y_DIMENSION,
+                TAG_PLANAR_CONFIGURATION,
+                TAG_PRIMARY_CHROMATICITIES,
+                TAG_REFERENCE_BLACK_WHITE,
+                TAG_RELATED_SOUND_FILE,
+                TAG_RESOLUTION_UNIT,
+                TAG_ROWS_PER_STRIP,
+                TAG_SAMPLES_PER_PIXEL,
+                TAG_SATURATION,
+                TAG_SCENE_CAPTURE_TYPE,
+                TAG_SCENE_TYPE,
+                TAG_SENSING_METHOD,
+                TAG_SHARPNESS,
+                TAG_SHUTTER_SPEED_VALUE,
+                TAG_SOFTWARE,
+                TAG_SPATIAL_FREQUENCY_RESPONSE,
+                TAG_SPECTRAL_SENSITIVITY,
+                TAG_STRIP_BYTE_COUNTS,
+                TAG_STRIP_OFFSETS,
+                TAG_SUBJECT_AREA,
+                TAG_SUBJECT_DISTANCE,
+                TAG_SUBJECT_DISTANCE_RANGE,
+                TAG_SUBJECT_LOCATION,
+                TAG_SUBSEC_TIME_DIGITIZED,
+                TAG_SUBSEC_TIME_ORIGINAL,
+                TAG_THUMBNAIL_IMAGE_LENGTH,
+                TAG_THUMBNAIL_IMAGE_WIDTH,
+                TAG_TRANSFER_FUNCTION,
+                TAG_USER_COMMENT,
+                TAG_WHITE_POINT,
+                TAG_X_RESOLUTION,
+                TAG_Y_RESOLUTION
         ));
     }
 }
