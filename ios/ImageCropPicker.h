@@ -32,10 +32,18 @@
 #import <CommonCrypto/CommonDigest.h>
 
 @interface ImageCropPicker : NSObject<
-  RCTBridgeModule,
-  QBImagePickerControllerDelegate,
-  RSKImageCropViewControllerDelegate,
-  RSKImageCropViewControllerDataSource>
+UIImagePickerControllerDelegate,
+UINavigationControllerDelegate,
+RCTBridgeModule,
+QBImagePickerControllerDelegate,
+RSKImageCropViewControllerDelegate,
+RSKImageCropViewControllerDataSource>
+
+typedef enum selectionMode {
+    CAMERA,
+    CROPPING,
+    PICKER
+} SelectionMode;
 
 @property (nonatomic, strong) NSMutableDictionary *croppingFile;
 @property (nonatomic, strong) NSDictionary *defaultOptions;
@@ -43,7 +51,7 @@
 @property (nonatomic, retain) NSMutableDictionary *options;
 @property (nonatomic, strong) RCTPromiseResolveBlock resolve;
 @property (nonatomic, strong) RCTPromiseRejectBlock reject;
-@property BOOL cropOnly;
+@property SelectionMode currentSelectionMode;
 
 @end
 
