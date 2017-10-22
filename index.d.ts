@@ -27,95 +27,96 @@ declare module "react-native-image-crop-picker" {
     }
 
     interface AndroidBasic {
-        FNumber: string;
-        DateTime: string;
-        ExposureTime: string;
-        Flash: string;
-        FocalLength: string;
-        GPSAltitude: string;
-        GPSAltitudeRef: string;
-        GPSDateStamp: string;
-        GPSLatitude: string;
-        GPSLatitudeRef: string;
-        GPSLongitude: string;
-        GPSLongitudeRef: string;
-        GPSProcessingMethod: string;
-        GPSTimeStamp: string;
-        ImageLength: string;
-        ImageWidth: string;
-        ISOSpeedRatings: string;
-        Make: string;
-        Model: string;
-        Orientation: string;
-        WhiteBalance: string;
+        FNumber: string | null;
+        DateTime: string | null;
+        ExposureTime: string | null;
+        Flash: string | null;
+        FocalLength: string | null;
+        GPSAltitude: string | null;
+        GPSAltitudeRef: string | null;
+        GPSDateStamp: string | null;
+        GPSLatitude: string | null;
+        GPSLatitudeRef: string | null;
+        GPSLongitude: string | null;
+        GPSLongitudeRef: string | null;
+        GPSProcessingMethod: string | null;
+        GPSTimeStamp: string | null;
+        ImageLength: string | null;
+        ImageWidth: string | null;
+        ISOSpeedRatings: string | null;
+        Make: string | null;
+        Model: string | null;
+        Orientation: string | null;
+        WhiteBalance: string | null;
     }
 
     interface AndroidLevel23 {
-        DateTime: string;
-        DateTimeDigitized: string;
-        SubSecTime: string;
-        SubSecTimeDigitized: string;
-        SubSecTimeOriginal: string;
+        DateTime: string | null;
+        DateTimeDigitized: string | null;
+        SubSecTime: string | null;
+        SubSecTimeDigitized: string | null;
+        SubSecTimeOriginal: string | null;
     }
 
     interface AndroidLevel24 {
-        GPSImgDirection: string;
-        GPSImgDirectionRef: string;
-        GPSMapDatum: string;
-        GPSMeasureMode: string;
-        GPSSatellites: string;
-        GPSSpeed: string;
-        GPSSpeedRef: string;
-        GPSStatus: string;
-        GPSTrack: string;
-        GPSTrackRef: string;
-        GPSVersionID: string;
-        ImageDescription: string;
-        ImageUniqueID: string;
-        InteroperabilityIndex: string;
-        ISOSpeedRatings: string; 
-        JPEGInterchangeFormat: string;
-        JPEGInterchangeFormatLength: string;
-        LightSource: string;
-        Make: string;
-        MakerNote: string;
-        MaxApertureValue: string;
-        MeteringMode: string;
-        OECF: string;
-        PhotometricInterpretation: string;
-        PixelXDimension: string;
-        PixelYDimension: string;
-        PlanarConfiguration: string;
-        PrimaryChromaticities: string;
-        ReferenceBlackWhite: string;
-        RelatedSoundFile: string;
-        ResolutionUnit: string;
-        RowsPerStrip: string;
-        SamplesPerPixel: string;
-        Saturation: string;
-        SceneCaptureType: string;
-        SceneType: string;
-        SensingMethod: string;
-        Sharpness: string;
-        ShutterSpeedValue: string;
-        Software: string;
-        SpatialFrequencyResponse: string;
-        SpectralSensitivity: string;
-        StripByteCounts: string;
-        StripOffsets: string;
-        SubjectArea: string;
-        SubjectDistance: string;
-        SubjectDistanceRange: string;
-        SubjectLocation: string;
-        SubSecTime: string;
-        SubSecTimeDigitized: string; SubSecTimeOriginal: string; 
-        ThumbnailImageLength: string;
-        ThumbnailImageWidth: string;
-        TransferFunction: string;
-        UserComment: string;
-        WhitePoint: string;
-        XResolution: string;
-        YResolution: string;
+        GPSImgDirection: string | null;
+        GPSImgDirectionRef: string | null;
+        GPSMapDatum: string | null;
+        GPSMeasureMode: string | null;
+        GPSSatellites: string | null;
+        GPSSpeed: string | null;
+        GPSSpeedRef: string | null;
+        GPSStatus: string | null;
+        GPSTrack: string | null;
+        GPSTrackRef: string | null;
+        GPSVersionID: string | null;
+        ImageDescription: string | null;
+        ImageUniqueID: string | null;
+        InteroperabilityIndex: string | null;
+        ISOSpeedRatings: string | null;
+        JPEGInterchangeFormat: string | null;
+        JPEGInterchangeFormatLength: string | null;
+        LightSource: string | null;
+        Make: string | null;
+        MakerNote: string | null;
+        MaxApertureValue: string | null;
+        MeteringMode: string | null;
+        OECF: string | null;
+        PhotometricInterpretation: string | null;
+        PixelXDimension: string | null;
+        PixelYDimension: string | null;
+        PlanarConfiguration: string | null;
+        PrimaryChromaticities: string | null;
+        ReferenceBlackWhite: string | null;
+        RelatedSoundFile: string | null;
+        ResolutionUnit: string | null;
+        RowsPerStrip: string | null;
+        SamplesPerPixel: string | null;
+        Saturation: string | null;
+        SceneCaptureType: string | null;
+        SceneType: string | null;
+        SensingMethod: string | null;
+        Sharpness: string | null;
+        ShutterSpeedValue: string | null;
+        Software: string | null;
+        SpatialFrequencyResponse: string | null;
+        SpectralSensitivity: string | null;
+        StripByteCounts: string | null;
+        StripOffsets: string | null;
+        SubjectArea: string | null;
+        SubjectDistance: string | null;
+        SubjectDistanceRange: string | null;
+        SubjectLocation: string | null;
+        SubSecTime: string | null;
+        SubSecTimeDigitized: string | null;
+        SubSecTimeOriginal: string | null;
+        ThumbnailImageLength: string | null;
+        ThumbnailImageWidth: string | null;
+        TransferFunction: string | null;
+        UserComment: string | null;
+        WhitePoint: string | null;
+        XResolution: string | null;
+        YResolution: string | null;
     }
 
     export interface ExifIosExif {
@@ -180,7 +181,7 @@ declare module "react-native-image-crop-picker" {
         "{TIFF}": ExifIosTiff;
     }>
 
-    export type ExifAndroid = Partial<AndroidBasic> & Partial<AndroidLevel23> & Partial<AndroidLevel24>;
+    export type ExifAndroid = AndroidBasic & Partial<AndroidLevel23> & Partial<AndroidLevel24>;
 
     export type Exif = ExifAndroid | ExifIos;
 
