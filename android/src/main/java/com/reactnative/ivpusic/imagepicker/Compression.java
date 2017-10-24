@@ -20,9 +20,9 @@ import io.reactivex.schedulers.Schedulers;
  * Created by ipusic on 12/27/16.
  */
 
-public class Compression {
+class Compression {
 
-    public void compressImageAsync(final Activity activity, final ReadableMap options, final String originalImagePath, String compressedImagePath, Consumer onSuccess, Consumer onError) throws IOException {
+    void compressImageAsync(final Activity activity, final ReadableMap options, final String originalImagePath, String compressedImagePath, Consumer onSuccess, Consumer onError) throws IOException {
         Integer maxWidth = options.hasKey("compressImageMaxWidth") ? options.getInt("compressImageMaxWidth") : null;
         Integer maxHeight = options.hasKey("compressImageMaxHeight") ? options.getInt("compressImageMaxHeight") : null;
         Double quality = options.hasKey("compressImageQuality") ? options.getDouble("compressImageQuality") : null;
@@ -67,7 +67,7 @@ public class Compression {
 
     }
 
-    public synchronized void compressVideo(final Activity activity, final ReadableMap options, final String originalVideo, final String compressedVideo, final Promise promise) {
+    synchronized void compressVideo(final Activity activity, final ReadableMap options, final String originalVideo, final String compressedVideo, final Promise promise) {
         // todo: video compression
         // failed attempt 1: ffmpeg => slow and licensing issues
         promise.resolve(originalVideo);
