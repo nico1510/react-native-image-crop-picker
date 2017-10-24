@@ -17,10 +17,10 @@ import static android.media.ExifInterface.*;
  * Created by nico1510 on 15.06.17.
  */
 
-public class ExifExtractor {
+class ExifExtractor {
 
 
-    public static WritableMap extract(String path) throws IOException {
+    static WritableMap extract(String path) throws IOException {
         WritableMap exifData = new WritableNativeMap();
 
         List<String> attributes = getBasicAttributes();
@@ -43,7 +43,7 @@ public class ExifExtractor {
         return exifData;
     }
 
-    private static List<String> getBasicAttributes() {
+    static List<String> getBasicAttributes() {
         return new ArrayList<String>(Arrays.asList(
                 TAG_APERTURE,
                 TAG_DATETIME,
@@ -69,7 +69,7 @@ public class ExifExtractor {
         ));
     }
 
-    private static List<String> getLevel23Attributes() {
+    static List<String> getLevel23Attributes() {
         return new ArrayList<String>(Arrays.asList(
                 TAG_DATETIME_DIGITIZED,
                 TAG_SUBSEC_TIME,
@@ -78,7 +78,7 @@ public class ExifExtractor {
         ));
     }
 
-    private static List<String> getLevel24Attributes() {
+    static List<String> getLevel24Attributes() {
         return new ArrayList<String>(Arrays.asList(
                 TAG_GPS_IMG_DIRECTION,
                 TAG_GPS_IMG_DIRECTION_REF,
