@@ -43,7 +43,6 @@ declare module "react-native-image-crop-picker" {
         GPSTimeStamp: string | null;
         ImageLength: string | null;
         ImageWidth: string | null;
-        ISOSpeedRatings: string | null;
         Make: string | null;
         Model: string | null;
         Orientation: string | null;
@@ -123,58 +122,68 @@ declare module "react-native-image-crop-picker" {
         ApertureValue: string;
         BrightnessValue: string;
         ColorSpace: string;
-        ExposureMode: string;
-        ExposureProgram: string;
-        ExposureTime: string;
-        FNumber: string;
-        Flash: string;
-        FocalLenIn35mmFilm: string;
-        FocalLength: string;
-        MeteringMode: string;
-        PixelXDimension: string;
-        PixelYDimension: string;
-        SceneCaptureType: string;
+        DateTimeDigitized: string;        
+        ExposureMode: number;
+        ExposureProgram: number;
+        ExposureTime: number;
+        FNumber: number;
+        Flash: number;
+        FocalLenIn35mmFilm: number;
+        FocalLength: number;
+        ISOSpeedRatings: number[];
+        MaxApertureValue: number;
+        MeteringMode: number;
+        PixelXDimension: number;
+        PixelYDimension: number;
+        SceneCaptureType: number;
         SensingMethod: string;
-        ShutterSpeedValue: string;
+        ShutterSpeedValue: number;
         SubjectDistance: string;
         UserComment: string;
-        WhiteBalance: string;
+        WhiteBalance: number;
     }
 
     export interface ExifIosGps {
+        Altitude: number;
+        AltitudeRef: number;
         DateStamp: string;
+        TimeStamp: string;
         DestLatitude: string;
         DestLatitudeRef: 'N' | 'S';
         DestLongitude: string;
         DestLongitudeRef: 'W' | 'E';
-        ImgDirection: string | undefined;
-        Latitude: string;
+        ImgDirection: number;
+        ImgDirectionRef: string;
+        Latitude: number;
         LatitudeRef: 'N' | 'S';
-        Longitude: string;
+        Longitude: number;
         LongitudeRef: 'W' | 'E';
     }
 
     export interface ExifIosJiff {
-        DensityUnit: string;
-        XDensity: string;
-        YDensity: string;
+        DensityUnit: number;
+        XDensity: number;
+        YDensity: number;
     }
 
     export interface ExifIosTiff {
-        Orientation: string;
-        ResolutionUnit: string;
-        XResolution: string;
-        YResolution: string;
+        Orientation: number;
+        ResolutionUnit: number;
+        XResolution: number;
+        YResolution: number;
+        Model: string;
+        Make: string;
+        Software: string;
     }
 
     export type ExifIos = Partial<{
         ColorModel: string;
-        DPIHeight: string;
-        DPIWidth: string;
-        Depth: string;
-        Orientation: string;
-        PixelHeight: string;
-        PixelWidth: string;
+        DPIHeight: number;
+        DPIWidth: number;
+        Depth: number;
+        Orientation: number;
+        PixelHeight: number;
+        PixelWidth: number;
         "{Exif}": ExifIosExif;
         "{GPS}": ExifIosGps;
         "{JFIF}": ExifIosJiff;
@@ -189,7 +198,7 @@ declare module "react-native-image-crop-picker" {
         path: string;
         size: number;
         data: null | string;
-        md5: null | string;
+        md5: string;
         width: number;
         height: number;
         mime: string;
