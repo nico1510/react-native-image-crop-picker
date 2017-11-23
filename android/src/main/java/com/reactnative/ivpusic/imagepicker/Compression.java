@@ -22,7 +22,7 @@ import io.reactivex.schedulers.Schedulers;
 
 class Compression {
 
-    void compressImageAsync(final Activity activity, final ReadableMap options, final String originalImagePath, String compressedImagePath, Consumer onSuccess, Consumer onError) throws IOException {
+    void compressImageAsync(final Activity activity, final ReadableMap options, final String originalImagePath, String compressedImagePath, String md5, Consumer onSuccess, Consumer onError) throws IOException {
         Integer maxWidth = options.hasKey("compressImageMaxWidth") ? options.getInt("compressImageMaxWidth") : null;
         Integer maxHeight = options.hasKey("compressImageMaxHeight") ? options.getInt("compressImageMaxHeight") : null;
         Double quality = options.hasKey("compressImageQuality") ? options.getDouble("compressImageQuality") : null;
@@ -60,7 +60,7 @@ class Compression {
             compressor.setMaxHeight(maxHeight);
         }
 
-        compressor.compressToFileAsFlowable(new File(originalImagePath))
+        compressor.compressToFileAsFlowable(new File(originalImagePath), md5)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(onSuccess, onError);

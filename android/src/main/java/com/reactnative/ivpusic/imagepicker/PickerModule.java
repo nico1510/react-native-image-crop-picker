@@ -552,7 +552,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         // if compression options are provided image will be compressed. If none options is provided,
         // then original image will be returned
         String destinationPath = this.getTmpDir(activity);
-        compression.compressImageAsync(activity, options, path, destinationPath, new Consumer<File>() {
+        compression.compressImageAsync(activity, options, path, destinationPath, md5, new Consumer<File>() {
             @Override
             public void accept(File file) {
                 String compressedImagePath = file.getAbsolutePath();
