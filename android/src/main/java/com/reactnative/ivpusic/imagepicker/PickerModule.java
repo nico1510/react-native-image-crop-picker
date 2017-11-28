@@ -46,6 +46,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -639,9 +641,13 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                         resultCollector.setWaitCount(1);
                         getAsyncSelection(activity, data.getData(), false);
                     } else {
-                        resultCollector.setWaitCount(clipData.getItemCount());
+                        Set<Uri> uris = new TreeSet<>();
                         for (int i = 0; i < clipData.getItemCount(); i++) {
-                            getAsyncSelection(activity, clipData.getItemAt(i).getUri(), false);
+                            uris.add(clipData.getItemAt(i).getUri());
+                        }
+                        resultCollector.setWaitCount(uris.size());
+                        for (Uri uri : uris) {
+                            getAsyncSelection(activity, uri, false);
                         }
                     }
                 } catch (Exception ex) {
