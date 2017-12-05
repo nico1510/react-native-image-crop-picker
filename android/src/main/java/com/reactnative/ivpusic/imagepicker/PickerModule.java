@@ -530,7 +530,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         return options;
     }
 
-    private void getImageAsync(final Activity activity, String path) throws Exception {
+    private void getImageAsync(final Activity activity, final String path) throws Exception {
         final WritableMap image = new WritableNativeMap();
 
         if (path.startsWith("http://") || path.startsWith("https://")) {
