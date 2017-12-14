@@ -14,6 +14,7 @@ iOS/Android image picker with support for camera, configurable compression, mult
 ## Usage
 
 Import library
+
 ```javascript
 import ImagePicker from 'react-native-image-crop-picker';
 ```
@@ -32,6 +33,7 @@ ImagePicker.openPicker({
 ```
 
 Call multiple image picker
+
 ```javascript
 ImagePicker.openPicker({
   multiple: true
@@ -41,6 +43,7 @@ ImagePicker.openPicker({
 ```
 
 Select video only from gallery
+
 ```javascript
 ImagePicker.openPicker({
   mediaType: "video",
@@ -53,6 +56,7 @@ ImagePicker.openPicker({
 
 
 ### Select from camera
+
 ```javascript
 ImagePicker.openCamera({
   width: 300,
@@ -64,6 +68,7 @@ ImagePicker.openCamera({
 ```
 
 ### Crop picture
+
 ```javascript
 ImagePicker.openCropper({
   path: 'my-file-path.jpg',
@@ -75,6 +80,7 @@ ImagePicker.openCropper({
 ```
 
 ### Optional cleanup
+
 Module is creating tmp images which are going to be cleaned up automatically somewhere in the future. If you want to force cleanup, you can use `clean` to clean all tmp files, or `cleanSingle(path)` to clean single tmp file.
 
 ```javascript
@@ -129,6 +135,7 @@ ImagePicker.clean().then(() => {
 | size                      | number | Selected image size in bytes             |
 | data                      | base64 | Optional base64 selected file representation |
 | exif                      | object | Extracted exif data from image. Response format is platform specific |
+| cropRect                  | object | Cropped image rectangle (width, height, x, y)    |
 | creationDate (ios only)   | string | UNIX timestamp when image was created    |
 | modificationDate          | string | UNIX timestamp when image was last modified |
 
@@ -136,13 +143,13 @@ ImagePicker.clean().then(() => {
 
 ## Install package
 
-```
+```bash
 npm i react-native-image-crop-picker --save
 ```
 
 Link the package using react-native link:
 
-```
+```bash
 react-native link react-native-image-crop-picker
 ```
 
@@ -158,14 +165,14 @@ In Xcode open Info.plist and add string key `NSPhotoLibraryUsageDescription` wit
 
 ##### Cocoapods (Highly recommended)
 
-```
+```bash
 cd ios
 pod init
 ```
 
 After this you have to add pod dependencies to `Podfile`. Open `Podfile` with your editor, and add or adjust example configuration:
 
-```
+```bash
 platform :ios, '8.0'
 
 target '<your_project_name>' do
@@ -176,7 +183,7 @@ end
 
 After this run:
 
-```
+```bash
 pod install
 ```
 
@@ -190,6 +197,7 @@ pod install
 ### Android
 
 - Make sure you are using Gradle `2.2.x` (project build.gradle)
+
 ```gradle
 buildscript {
     ...
@@ -201,7 +209,19 @@ buildscript {
 }
 ```
 
+- Add the following to your `build.gradle`'s repositories section. (project build.gradle)
+
+```gradle
+allprojects {
+    repositories {
+        jcenter()
+        maven { url "https://jitpack.io" }
+    }
+}
+```
+
 - Add `useSupportLibrary` (app build.gradle)
+
 ```gradle
 android {
     ...
@@ -236,6 +256,13 @@ Details for second approach:
 1. Remove the pre-built frameworks from `Embedded Binaries`
 2. Build for Device
 3. Add the newly built binaries for both frameworks to `Embedded Binaries` (located at `Libraries/imageCropPicker/Libraries/_framework_name_.xcodeproj/Products/_framework_name_.framework`)
+
+## TO DO
+
+- [ ] [Android] Standardize multiple select
+- [ ] [Android] Pick remote media
+- [ ] [Android] Video compression
+
 
 ## Contributors
 
