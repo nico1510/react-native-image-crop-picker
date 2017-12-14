@@ -421,13 +421,13 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         return type;
     }
 
-    private void getSelection(Activity activity, Uri uri, boolean isCamera) throws Exception {
+    private void getSelection(Activity activity, Uri uri, boolean isCamera, WritableMap cropRect) throws Exception {
         String path = resolveRealPath(activity, uri, isCamera);
         if (path == null || path.isEmpty()) {
             throw new Exception("Cannot resolve asset path.");
         }
 
-        getImageAsync(activity, path);
+        getImageAsync(activity, path, cropRect);
     }
 
     private void getAsyncSelection(final Activity activity, Uri uri, boolean isCamera) throws Exception {
@@ -443,7 +443,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             return;
         }
 
-        getImageAsync(activity, path);
+        getImageAsync(activity, path, null);
     }
 
     private Bitmap validateVideo(String path) throws Exception {
@@ -530,7 +530,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         return options;
     }
 
-    private void getImageAsync(final Activity activity, final String path) throws Exception {
+    private void getImageAsync(final Activity activity, final String path, final WritableMap cropRect) throws Exception {
         final WritableMap image = new WritableNativeMap();
 
         if (path.startsWith("http://") || path.startsWith("https://")) {
@@ -572,6 +572,9 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                     image.putString("path", "file://" + compressedImagePath);
                     image.putInt("size", (int) new File(compressedImagePath).length());
                     image.putString("modificationDate", String.valueOf(modificationDate));
+                    if(cropRect != null) {
+                        image.putMap("cropRect", cropRect);
+                    }
                     resultCollector.notifySuccess(image);
 
                 } catch (Exception e) {
@@ -696,7 +699,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             } else {
                 try {
                     resultCollector.setWaitCount(1);
-                    getSelection(activity, uri, true);
+                    getSelection(activity, uri, true, null);
                 } catch (Exception ex) {
                     resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, ex.getMessage());
                 }
@@ -709,11 +712,8 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             final Uri resultUri = UCrop.getOutput(data);
             if (resultUri != null) {
                 try {
-                    WritableMap result = getSelection(activity, resultUri, false);
-                    result.putMap("cropRect", PickerModule.getCroppedRectMap(data));
-
                     resultCollector.setWaitCount(1);
-                    resultCollector.notifySuccess(result);
+                    getSelection(activity, resultUri, false, PickerModule.getCroppedRectMap(data));
                 } catch (Exception ex) {
                     resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, ex.getMessage());
                 }
