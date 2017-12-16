@@ -539,13 +539,14 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
                              	[selections addObject:[self createAttachmentResponse:filePath
                                                                         withExif:exif
                                                                         withSourceURL:[sourceURL absoluteString]
-                                                                  	withLocalIdentifier: phAsset.localIdentifier
+                                                                  	    withLocalIdentifier: phAsset.localIdentifier
                                                                         withFilename: [phAsset valueForKey:@"filename"]
                                                                         withWidth:imageResult.width
                                                                         withHeight:imageResult.height
                                                                         withMime:imageResult.mime
                                                                         withSize:[NSNumber numberWithUnsignedInteger:imageResult.data.length]
                                                                         withData:[[self.options objectForKey:@"includeBase64"] boolValue] ? [imageResult.data base64EncodedStringWithOptions:0] : nil
+                                                                        withRect:CGRectNull
                                                                         withCreationDate:phAsset.creationDate
                                                                         withModificationDate:phAsset.modificationDate
                                                                         withMd5:[[self.options objectForKey:@"includeMd5Hash"] boolValue] ? md5 : nil
