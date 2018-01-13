@@ -280,11 +280,26 @@ RCT_EXPORT_METHOD(openPicker:(NSDictionary *)options
             
             if ([self.options objectForKey:@"smartAlbums"] != nil) {
                 NSDictionary *smartAlbums = @{
-                                              @"UserLibrary" : @(PHAssetCollectionSubtypeSmartAlbumUserLibrary),
+                                              //cloud albums
                                               @"PhotoStream" : @(PHAssetCollectionSubtypeAlbumMyPhotoStream),
+
+                                              //smart albums
+                                              @"Generic" : @(PHAssetCollectionSubtypeSmartAlbumGeneric),
                                               @"Panoramas" : @(PHAssetCollectionSubtypeSmartAlbumPanoramas),
                                               @"Videos" : @(PHAssetCollectionSubtypeSmartAlbumVideos),
+                                              @"Favorites" : @(PHAssetCollectionSubtypeSmartAlbumFavorites),
+                                              @"Timepalses" : @(PHAssetCollectionSubtypeSmartAlbumTimelapses),
+                                              @"AllHidden" : @(PHAssetCollectionSubtypeSmartAlbumAllHidden),
+                                              @"RecentlyAdded" : @(PHAssetCollectionSubtypeSmartAlbumRecentlyAdded),
                                               @"Bursts" : @(PHAssetCollectionSubtypeSmartAlbumBursts),
+                                              @"SlomoVideos" : @(PHAssetCollectionSubtypeSmartAlbumSlomoVideos),
+                                              @"UserLibrary" : @(PHAssetCollectionSubtypeSmartAlbumUserLibrary),
+                                              @"SelfPortraits" : @(PHAssetCollectionSubtypeSmartAlbumSelfPortraits),
+                                              @"Screenshots" : @(PHAssetCollectionSubtypeSmartAlbumScreenshots),
+                                              @"DepthEffect" : @(PHAssetCollectionSubtypeSmartAlbumDepthEffect),
+                                              @"LivePhotos" : @(PHAssetCollectionSubtypeSmartAlbumLivePhotos),
+                                              @"Animated" : @(PHAssetCollectionSubtypeSmartAlbumAnimated),
+                                              @"LongExposure" : @(PHAssetCollectionSubtypeSmartAlbumLongExposures),
                                               };
                 NSMutableArray *albumsToShow = [NSMutableArray arrayWithCapacity:5];
                 for (NSString* album in [self.options objectForKey:@"smartAlbums"]) {
@@ -458,6 +473,25 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
              };
 }
 
+// See https://stackoverflow.com/questions/4147311/finding-image-type-from-nsdata-or-uiimage
+- (NSString *)determineMimeTypeFromImageData:(NSData *)data {
+    uint8_t c;
+    [data getBytes:&c length:1];
+
+    switch (c) {
+        case 0xFF:
+            return @"image/jpeg";
+        case 0x89:
+            return @"image/png";
+        case 0x47:
+            return @"image/gif";
+        case 0x49:
+        case 0x4D:
+            return @"image/tiff";
+    }
+    return @"";
+}
+
 - (void)qb_imagePickerController:
 (QBImagePickerController *)imagePickerController
           didFinishPickingAssets:(NSArray *)assets {
@@ -475,7 +509,7 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
             __block int processed = 0;
             
             for (PHAsset *phAsset in assets) {
-                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+              dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
                     if (phAsset.mediaType == PHAssetMediaTypeVideo) {
                         [self getVideoAsset:phAsset completion:^(NSDictionary* video) {
                             dispatch_async(dispatch_get_main_queue(), ^{
@@ -512,11 +546,29 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
 			     @autoreleasepool {
                              	NSURL *sourceURL = [info objectForKey:@"PHImageFileURLKey"];
                              	UIImage *imgT = [UIImage imageWithData:imageData];
-                             	UIImage *imageT = [imgT fixOrientation];
+                             	NSNumber *compressQuality = [self.options valueForKey:@"compressImageQuality"];
+                                Boolean isLossless = (compressQuality == nil || [compressQuality floatValue] == 1);
 
-                             	NSString *md5 = [self computeMd5Hash:imageData];
-                             	ImageResult *imageResult = [self.compression compressImage:imageT withOptions:self.options];
-                             	NSString *filePath = [self persistFile:imageResult.data withMd5:md5];
+                                NSNumber *maxWidth = [self.options valueForKey:@"compressImageMaxWidth"];
+                                Boolean useOriginalWidth = (maxWidth == nil || [maxWidth integerValue] >= imgT.size.width);
+
+                                NSNumber *maxHeight = [self.options valueForKey:@"compressImageMaxHeight"];
+                                Boolean useOriginalHeight = (maxHeight == nil || [maxHeight integerValue] >= imgT.size.height);
+
+                                ImageResult *imageResult = [[ImageResult alloc] init];
+                                if (isLossless && useOriginalWidth && useOriginalHeight) {
+                                     // Use original, unmodified image
+                                     imageResult.data = imageData;
+                                     imageResult.width = @(imgT.size.width);
+                                     imageResult.height = @(imgT.size.height);
+                                     imageResult.mime = [self determineMimeTypeFromImageData:imageData];
+                                     imageResult.image = imgT;
+                                } else {
+                                     imageResult = [self.compression compressImage:[imgT fixOrientation] withOptions:self.options];
+                                }
+
+                                NSString *md5 = [self computeMd5Hash:imageData];
+                                NSString *filePath = [self persistFile:imageResult.data withMd5:md5];
 
                              	NSDictionary* exif = nil;
                              	if([[self.options objectForKey:@"includeExif"] boolValue]) {
