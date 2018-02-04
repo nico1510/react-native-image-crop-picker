@@ -2,6 +2,7 @@ package com.reactnative.ivpusic.imagepicker;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -59,6 +60,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
 
     private static final int IMAGE_PICKER_REQUEST = 61110;
     private static final int CAMERA_PICKER_REQUEST = 61111;
+    private static final int PROFILE_PIC_PICKER_REQUEST = 61112;
     private static final String E_ACTIVITY_DOES_NOT_EXIST = "E_ACTIVITY_DOES_NOT_EXIST";
 
     private static final String E_PICKER_CANCELLED_KEY = "E_PICKER_CANCELLED";
@@ -329,17 +331,29 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     private void initiatePicker(final Activity activity) {
         try {
 
-            SelectionCreator builder = Matisse.from(activity)
-                    .choose(MimeType.of(MimeType.JPEG, MimeType.PNG))
-                    .countable(true)
-                    .thumbnailScale(0.85f)
-                    .imageEngine(new PicassoEngine());
+            if (cropping) {
+                final Intent galleryIntent = new Intent(Intent.ACTION_PICK);
+                galleryIntent.setType("image/*");
+                galleryIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
+                galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+                galleryIntent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+                final Intent chooserIntent = Intent.createChooser(galleryIntent, "Pick an image");
+                activity.startActivityForResult(chooserIntent, PROFILE_PIC_PICKER_REQUEST);
 
-            if (maxFiles != null) {
-                builder = builder.maxSelectable(maxFiles);
+            } else {
+                SelectionCreator builder = Matisse.from(activity)
+                        .choose(MimeType.of(MimeType.JPEG, MimeType.PNG))
+                        .countable(true)
+                        .thumbnailScale(0.85f)
+                        .imageEngine(new PicassoEngine());
+
+                if (maxFiles != null) {
+                    builder = builder.maxSelectable(maxFiles);
+                }
+
+                builder.forResult(IMAGE_PICKER_REQUEST);
             }
-
-            builder.forResult(IMAGE_PICKER_REQUEST);
 
         } catch (Exception e) {
             resultCollector.notifyProblem(E_FAILED_TO_SHOW_PICKER, e);
@@ -651,6 +665,31 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         }
     }
 
+    private void profilePicPickerResult(Activity activity, final int requestCode, final int resultCode, final Intent data) {
+        if (resultCode == Activity.RESULT_CANCELED) {
+            resultCollector.notifyProblem(E_PICKER_CANCELLED_KEY, E_PICKER_CANCELLED_MSG);
+        } else if (resultCode == Activity.RESULT_OK) {
+
+            Uri uri = data.getData();
+
+            if (uri == null) {
+                resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, "Cannot resolve image url");
+                return;
+            }
+
+            if (cropping) {
+                startCropping(activity, uri);
+            } else {
+                try {
+                    getAsyncSelection(activity, uri, false);
+                } catch (Exception ex) {
+                    resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, ex.getMessage());
+                }
+            }
+        }
+    }
+
+
     private void cameraPickerResult(Activity activity, final int requestCode, final int resultCode, final Intent data) {
         if (resultCode == Activity.RESULT_CANCELED) {
             resultCollector.notifyProblem(E_PICKER_CANCELLED_KEY, E_PICKER_CANCELLED_MSG);
@@ -703,6 +742,8 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             cameraPickerResult(activity, requestCode, resultCode, data);
         } else if (requestCode == UCrop.REQUEST_CROP) {
             croppingResult(activity, requestCode, resultCode, data);
+        } else if (requestCode == PROFILE_PIC_PICKER_REQUEST) {
+            profilePicPickerResult(activity, requestCode, resultCode, data);
         }
     }
 
