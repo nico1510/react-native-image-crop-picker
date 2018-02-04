@@ -2,7 +2,6 @@ package com.reactnative.ivpusic.imagepicker;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -32,6 +31,11 @@ import com.facebook.react.modules.core.PermissionAwareActivity;
 import com.facebook.react.modules.core.PermissionListener;
 import com.yalantis.ucrop.UCrop;
 import com.yalantis.ucrop.UCropActivity;
+import com.zhihu.matisse.Matisse;
+import com.zhihu.matisse.MimeType;
+import com.zhihu.matisse.SelectionCreator;
+import com.zhihu.matisse.engine.impl.GlideEngine;
+import com.zhihu.matisse.engine.impl.PicassoEngine;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -46,8 +50,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -73,6 +75,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
 
     private String mediaType = "any";
     private boolean multiple = false;
+    private Integer maxFiles;
     private boolean includeBase64 = false;
     private boolean includeMd5Hash = false;
     private boolean includeExif = false;
@@ -121,6 +124,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     private void setConfiguration(final ReadableMap options) {
         mediaType = options.hasKey("mediaType") ? options.getString("mediaType") : mediaType;
         multiple = options.hasKey("multiple") && options.getBoolean("multiple");
+        maxFiles = options.hasKey("maxFiles") ? options.getInt("maxFiles") : null;
         includeBase64 = options.hasKey("includeBase64") && options.getBoolean("includeBase64");
         includeMd5Hash = options.hasKey("includeMd5Hash") && options.getBoolean("includeMd5Hash");
         includeExif = options.hasKey("includeExif") && options.getBoolean("includeExif");
@@ -324,25 +328,19 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
 
     private void initiatePicker(final Activity activity) {
         try {
-            final Intent galleryIntent = new Intent(Intent.ACTION_PICK);
 
-            if (cropping || mediaType.equals("photo")) {
-                galleryIntent.setType("image/*");
-            } else if (mediaType.equals("video")) {
-                galleryIntent.setType("video/*");
-            } else {
-                galleryIntent.setType("*/*");
-                String[] mimetypes = {"image/*", "video/*"};
-                galleryIntent.putExtra(Intent.EXTRA_MIME_TYPES, mimetypes);
+            SelectionCreator builder = Matisse.from(activity)
+                    .choose(MimeType.of(MimeType.JPEG, MimeType.PNG))
+                    .countable(true)
+                    .thumbnailScale(0.85f)
+                    .imageEngine(new PicassoEngine());
+
+            if (maxFiles != null) {
+                builder = builder.maxSelectable(maxFiles);
             }
-            
-            galleryIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, multiple);
-            galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
-            galleryIntent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
 
-            final Intent chooserIntent = Intent.createChooser(galleryIntent, "Pick an image");
-            activity.startActivityForResult(chooserIntent, IMAGE_PICKER_REQUEST);
+            builder.forResult(IMAGE_PICKER_REQUEST);
+
         } catch (Exception e) {
             resultCollector.notifyProblem(E_FAILED_TO_SHOW_PICKER, e);
         }
@@ -552,7 +550,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             image.putString("data", getBase64StringFromFile(path));
         }
         String md5 = calculateMD5(path);
-        if(includeMd5Hash) {
+        if (includeMd5Hash) {
             image.putString("md5", md5);
         }
 
@@ -566,14 +564,14 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                 BitmapFactory.Options options = null;
                 try {
                     options = validateImage(compressedImagePath);
-					long modificationDate = new File(path).lastModified();
+                    long modificationDate = new File(path).lastModified();
                     image.putInt("width", options.outWidth);
                     image.putInt("height", options.outHeight);
                     image.putString("mime", options.outMimeType);
                     image.putString("path", "file://" + compressedImagePath);
                     image.putInt("size", (int) new File(compressedImagePath).length());
                     image.putString("modificationDate", String.valueOf(modificationDate));
-                    if(cropRect != null) {
+                    if (cropRect != null) {
                         image.putMap("cropRect", cropRect);
                     }
                     resultCollector.notifySuccess(image);
@@ -639,46 +637,17 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         if (resultCode == Activity.RESULT_CANCELED) {
             resultCollector.notifyProblem(E_PICKER_CANCELLED_KEY, E_PICKER_CANCELLED_MSG);
         } else if (resultCode == Activity.RESULT_OK) {
-            if (multiple) {
-                ClipData clipData = data.getClipData();
+            List<Uri> uris = Matisse.obtainResult(data);
 
-                try {
-                    // only one image selected
-                    if (clipData == null) {
-                        resultCollector.setWaitCount(1);
-                        getAsyncSelection(activity, data.getData(), false);
-                    } else {
-                        Set<Uri> uris = new TreeSet<>();
-                        for (int i = 0; i < clipData.getItemCount(); i++) {
-                            uris.add(clipData.getItemAt(i).getUri());
-                        }
-                        resultCollector.setWaitCount(uris.size());
-                        for (Uri uri : uris) {
-                            getAsyncSelection(activity, uri, false);
-                        }
-                    }
-                } catch (Exception ex) {
-                    resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, ex.getMessage());
+            try {
+                resultCollector.setWaitCount(uris.size());
+                for (Uri uri : uris) {
+                    getAsyncSelection(activity, uri, false);
                 }
-
-            } else {
-                Uri uri = data.getData();
-
-                if (uri == null) {
-                    resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, "Cannot resolve image url");
-                    return;
-                }
-
-                if (cropping) {
-                    startCropping(activity, uri);
-                } else {
-                    try {
-                        getAsyncSelection(activity, uri, false);
-                    } catch (Exception ex) {
-                        resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, ex.getMessage());
-                    }
-                }
+            } catch (Exception ex) {
+                resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, ex.getMessage());
             }
+
         }
     }
 
