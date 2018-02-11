@@ -19,6 +19,8 @@ import static android.media.ExifInterface.TAG_GPS_LONGITUDE;
 
 public class ExifFilter extends Filter {
 
+    private String lastSelected;
+
     @Override
     protected Set<MimeType> constraintTypes() {
         return MimeType.of(MimeType.JPEG, MimeType.PNG);
@@ -32,14 +34,18 @@ public class ExifFilter extends Filter {
         try {
             String path = RealPathUtil.getRealPathFromURI(context, item.getContentUri());
             WritableMap exif = ExifExtractor.extract(path);
-            if(exif.getString(TAG_GPS_LATITUDE) == null || exif.getString(TAG_GPS_LONGITUDE) == null) {
-                return new IncapableCause(IncapableCause.TOAST, "The selected image contains no GPS data");
+            if ((exif.getString(TAG_GPS_LATITUDE) == null || exif.getString(TAG_GPS_LONGITUDE) == null) && !(item.getContentUri().getPath().equals(lastSelected))) {
+                this.lastSelected = item.getContentUri().getPath();
+                return new IncapableCause(IncapableCause.TOAST, "The selected image contains no GPS data! Press again to select anyhow.");
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new IncapableCause(IncapableCause.TOAST, "The selected image contains no GPS data");
+            if (!(item.getContentUri().getPath().equals(lastSelected)))
+                this.lastSelected = item.getContentUri().getPath();
+                return new IncapableCause(IncapableCause.TOAST, "The selected image contains no GPS data! Press again to select anyhow.");
         }
+        this.lastSelected = item.getContentUri().getPath();
         return null;
     }
 }
