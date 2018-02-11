@@ -2,7 +2,6 @@ package com.reactnative.ivpusic.imagepicker;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.ClipData;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -36,7 +35,6 @@ import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.MimeType;
 import com.zhihu.matisse.SelectionCreator;
 import com.zhihu.matisse.engine.impl.GlideEngine;
-import com.zhihu.matisse.engine.impl.PicassoEngine;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -75,6 +73,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     private static final String E_PERMISSIONS_MISSING = "E_PERMISSION_MISSING";
     private static final String E_ERROR_WHILE_CLEANING_FILES = "E_ERROR_WHILE_CLEANING_FILES";
 
+    private boolean allowOnlyExif = false;
     private String mediaType = "any";
     private boolean multiple = false;
     private Integer maxFiles;
@@ -124,6 +123,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     }
 
     private void setConfiguration(final ReadableMap options) {
+        allowOnlyExif = options.hasKey("allowOnlyExif") && options.getBoolean("allowOnlyExif");
         mediaType = options.hasKey("mediaType") ? options.getString("mediaType") : mediaType;
         multiple = options.hasKey("multiple") && options.getBoolean("multiple");
         maxFiles = options.hasKey("maxFiles") ? options.getInt("maxFiles") : null;
@@ -346,10 +346,14 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                         .choose(MimeType.of(MimeType.JPEG, MimeType.PNG))
                         .countable(true)
                         .thumbnailScale(0.85f)
-                        .imageEngine(new PicassoEngine());
+                        .imageEngine(new GlideEngine());
 
                 if (maxFiles != null) {
                     builder = builder.maxSelectable(maxFiles);
+                }
+
+                if (allowOnlyExif) {
+                    builder = builder.addFilter(new ExifFilter());
                 }
 
                 builder.forResult(IMAGE_PICKER_REQUEST);
