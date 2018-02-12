@@ -43,6 +43,8 @@ RCT_EXPORT_MODULE();
 
 @synthesize bridge = _bridge;
 
+PHAsset* lastSelected = nil;
+
 - (instancetype)init
 {
     if (self = [super init]) {
@@ -491,6 +493,32 @@ RCT_EXPORT_METHOD(openCropper:(NSDictionary *)options
     }
     return @"";
 }
+
+- (BOOL)qb_imagePickerController:(QBImagePickerController *)imagePickerController shouldSelectAsset:(PHAsset *)asset {
+    if (asset == nil) {
+        lastSelected = nil;
+        return NO;
+    }
+    if(lastSelected == asset || (asset.location != nil && asset.location.coordinate.latitude && asset.location.coordinate.longitude)) {
+        lastSelected = asset;
+        return YES;
+    } else {
+        MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:imagePickerController.view animated:YES];
+
+        // Configure for text only and offset down
+        hud.mode = MBProgressHUDModeText;
+        hud.userInteractionEnabled = NO;
+        hud.label.text = @"The selected image contains no GPS data!";
+        hud.detailsLabel.text = @"Press again to select anyhow.";
+        hud.margin = 10.f;
+        hud.removeFromSuperViewOnHide = YES;
+
+        [hud hideAnimated:YES afterDelay:3];
+        lastSelected = asset;
+        return NO;
+    }
+}
+
 
 - (void)qb_imagePickerController:
 (QBImagePickerController *)imagePickerController

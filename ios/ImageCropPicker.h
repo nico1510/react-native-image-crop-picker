@@ -31,6 +31,8 @@
 #import <math.h>
 #import <CommonCrypto/CommonDigest.h>
 
+#import "MBProgressHUD/MBProgressHUD.h"
+
 @interface ImageCropPicker : NSObject<
 UIImagePickerControllerDelegate,
 UINavigationControllerDelegate,
